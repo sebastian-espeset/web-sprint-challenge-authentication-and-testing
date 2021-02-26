@@ -5,7 +5,7 @@ const Users = require('../users/users-model')
 
 //isValid middleware
 function isValid(user) {
-  return Boolean(user.username && user.password && typeof user.password === "string");
+  return Boolean(user.username && user.password);
 }
 //token maker
 const makeToken = ( userObject ) =>{
@@ -18,8 +18,20 @@ const makeToken = ( userObject ) =>{
   }
   return jwt.sign(payload,"secret", options);
 }
-
-router.post('/register', (req, res) => {
+//middleware for checking username exists in database
+const checkUserInDb = async (req,res,next) =>{
+  try{
+      const rows = await Users.findBy({username:req.body.username})
+      if(!rows.length){
+          next()
+      }else{
+          res.status(401).json("username taken")
+      }
+  }catch(error){
+      res.status(500).json(`server error:${error}`)
+  }
+}
+router.post('/register',(req, res) => {
   const credentials = req.body;
 
   if(isValid(credentials)){
@@ -27,15 +39,13 @@ router.post('/register', (req, res) => {
     credentials.password=bcryptjs.hashSync(credentials.password,rounds)
     Users.add(credentials)
       .then(user=>{
-        res.status(200).json(user)
+        res.status(201).json(user)
       })
       .catch(error=>{
-        res.status(400).json("username taken")
+        res.status(500).json("username taken")
       })
   }else{
-    res.status(400).json({
-      message:`username and password required`
-    });
+    res.status(400).json("username and password required");
   }
   /*
     IMPLEMENT
@@ -76,7 +86,7 @@ router.post('/login', (req, res) => {
             token:token
           })
         }else{
-          res.status(400).json(`invalid credentials`)
+          res.status(401).json(`invalid credentials`)
         }
       }).catch(error=>{
         res.status(500).json({error})

@@ -1,16 +1,16 @@
 const db = require("../../data/dbConfig");
 
 
-
+function find() {
+  return db("users")
+}
 function findBy(filter){
-    return db("users as u")
+    return db("users")
     .where(filter)
 }
 
 function findById(id) {
-    return db("users as u")
-    .select("u.id","u.username","u.password")
-      .where("u.id", id)
+    return db("users")
       .first();
   }
 
@@ -20,6 +20,7 @@ async function add(newUser){
 }
 module.exports = {
   add,
+  find,
   findBy,
   findById,
 };
