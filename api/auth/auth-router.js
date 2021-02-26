@@ -1,14 +1,31 @@
 const router = require('express').Router();
 const bcryptjs = require("bcryptjs");
-const jwt = require("jsonwebtoken")
-const jwtSecret = require("../../config/secrets")
+const jwt = require("jsonwebtoken");
+const Users = require('../users/users-model')
 
-
-const { isValid } = require("../users/users-service.js");
-
+//isValid middleware
+function isValid(user) {
+  return Boolean(user.username && user.password && typeof user.password === "string");
+}
 
 router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+  const credentials = req.body;
+
+  if(isValid(credentials)){
+    const rounds = process.env.BCRYPT_ROUNDS || 8;
+    credentials.password=bcryptjs.hashSync(credentials.password,rounds)
+    Users.add(credentials)
+      .then(user=>{
+        res.status(200).json(user)
+      })
+      .catch(error=>{
+        res.status(400).json({message:error.message})
+      })
+  }else{
+    res.status(400).json({
+      message:`username and password required`
+    });
+  }
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
