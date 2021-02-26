@@ -19,7 +19,7 @@ router.post('/register', (req, res) => {
         res.status(200).json(user)
       })
       .catch(error=>{
-        res.status(400).json({message:error.message})
+        res.status(400).json("username taken")
       })
   }else{
     res.status(400).json({
