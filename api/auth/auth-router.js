@@ -7,6 +7,17 @@ const Users = require('../users/users-model')
 function isValid(user) {
   return Boolean(user.username && user.password && typeof user.password === "string");
 }
+//token maker
+const makeToken = ( userObject ) =>{
+  const payload = {
+    subject:userObject.id,
+    username:userObject.username
+  }
+  const options ={
+    expiresIn:"200s"
+  }
+  return jwt.sign(payload,"secret", options);
+}
 
 router.post('/register', (req, res) => {
   const credentials = req.body;
@@ -53,7 +64,26 @@ router.post('/register', (req, res) => {
 });
 
 router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+  const {username,password}=req.body;
+
+  if(isValid(req.body)){
+    Users.findBy({username:username})
+      .then(([user])=>{
+        if(user && bcryptjs.compareSync(password,user.password)){
+          const token = makeToken(user);
+          res.status(200).json({
+            message:`welcome ${user.username}`,
+            token:token
+          })
+        }else{
+          res.status(400).json(`invalid credentials`)
+        }
+      }).catch(error=>{
+        res.status(500).json({error})
+      })
+  }else{
+    res.status(400).json(`username and password required`)
+  }
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
