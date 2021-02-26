@@ -88,8 +88,6 @@ router.post('/login', (req, res) => {
         }else{
           res.status(401).json(`invalid credentials`)
         }
-      }).catch(error=>{
-        res.status(500).json({error})
       })
   }else{
     res.status(400).json(`username and password required`)
